@@ -76,7 +76,7 @@ class ApiClient {
   static const String productionHost = 'https://tvk.gradixtech.com';
 
   // 🟡 [ACTIVE] LOCAL DEVELOPMENT API:
-  static const bool isProduction = false;
+  static const bool isProduction = true;
   static const String localBaseUrlAndroid = 'http://10.0.2.2:4000/api/v1';
   static const String localBaseUrlIosWeb = 'http://localhost:4000/api/v1';
 
