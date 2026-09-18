@@ -1,4 +1,4 @@
-package com.example.tvk_application
+package com.gradixtvk.tvk_application
 
 import io.flutter.embedding.android.FlutterActivity
 

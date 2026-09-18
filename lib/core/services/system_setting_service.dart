@@ -51,7 +51,7 @@ class SystemSettingModel {
       latestAppVersion: json['latestAppVersion']?.toString() ?? '1.0.0',
       forceUpdate: json['forceUpdate'] == true,
       playStoreUrl: json['playStoreUrl']?.toString() ??
-          'https://play.google.com/store/apps/details?id=com.example.tvk_application',
+          'https://play.google.com/store/apps/details?id=com.gradixtvk.tvk_application',
       appStoreUrl: json['appStoreUrl']?.toString() ?? 'https://apps.apple.com/app/id6400000000',
       updateTitleEn: json['updateTitleEn']?.toString() ?? 'Update Required',
       updateTitleTa: json['updateTitleTa']?.toString() ?? 'புதிய பதிப்பு கிடைக்கிறது',
@@ -73,7 +73,7 @@ class SystemSettingModel {
         minAppVersion: '1.0.0',
         latestAppVersion: '1.0.0',
         forceUpdate: false,
-        playStoreUrl: 'https://play.google.com/store/apps/details?id=com.example.tvk_application',
+        playStoreUrl: 'https://play.google.com/store/apps/details?id=com.gradixtvk.tvk_application',
         appStoreUrl: 'https://apps.apple.com/app/id6400000000',
         updateTitleEn: 'Update Required',
         updateTitleTa: 'புதிய பதிப்பு கிடைக்கிறது',

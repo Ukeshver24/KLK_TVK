@@ -20,7 +20,7 @@ class UpdateRequiredScreen extends StatelessWidget {
     try {
       if (Platform.isAndroid) {
         // 1. Try launching native Google Play Store App directly
-        final Uri marketUri = Uri.parse('market://details?id=com.example.tvk_application');
+        final Uri marketUri = Uri.parse('market://details?id=com.gradixtvk.tvk_application');
         if (await canLaunchUrl(marketUri)) {
           await launchUrl(marketUri, mode: LaunchMode.externalApplication);
           return;
