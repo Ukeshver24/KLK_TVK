@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:tvk_application/core/widgets/app_toast.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/custom_bottom_nav_bar.dart';
+import '../../../auth/data/auth_api_service.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../widgets/profile_language_tile.dart';
 import 'edit_profile_screen.dart';
@@ -31,6 +34,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late String _currentLanguage;
   bool _notificationsEnabled = true;
   final int _currentBottomIndex = 4;
+  final AuthApiService _authService = AuthApiService();
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -78,14 +83,70 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         if (!mounted) return;
         Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => LoginScreen(
-              selectedLanguage: _currentLanguage,
-            ),
+            builder: (context) =>
+                LoginScreen(selectedLanguage: _currentLanguage),
           ),
           (route) => false,
         );
       },
     );
+  }
+
+  void _showDeleteAccountConfirmationDialog(bool isTamil) {
+    AppDialog.showConfirmation(
+      context,
+      title: isTamil
+          ? 'கணக்கை நிரந்தரமாக நீக்கவா?'
+          : 'Delete your account permanently?',
+      message: isTamil
+          ? 'உங்கள் கணக்கு, புகார்கள் மற்றும் தொடர்புடைய கோப்புகள் நிரந்தரமாக நீக்கப்படும். இந்த செயலை மீண்டும் மாற்ற முடியாது.'
+          : 'Your account, complaints, and related files will be permanently deleted. This action cannot be undone.',
+      confirmText: isTamil ? 'நிரந்தரமாக நீக்கு' : 'Delete Account',
+      cancelText: isTamil ? 'ரத்து' : 'Cancel',
+      confirmColor: const Color(0xFFD32F2F),
+      icon: Icons.delete_forever_rounded,
+      onConfirm: () async {
+        await _deleteAccount();
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    if (_isDeletingAccount) return;
+
+    setState(() {
+      _isDeletingAccount = true;
+    });
+
+    try {
+      final result = await _authService.deleteAccount();
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        AppToast.showSuccess(context, result.message);
+
+        await SessionService.instance.clearSession();
+
+        if (!mounted) return;
+
+        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) =>
+                LoginScreen(selectedLanguage: _currentLanguage),
+          ),
+          (route) => false,
+        );
+      } else {
+        AppToast.showError(context, result.message);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeletingAccount = false;
+        });
+      }
+    }
   }
 
   @override
@@ -135,7 +196,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           style: TextStyle(
                             color: AppColors.goldAccent,
                             fontSize: 22,
-                            fontWeight: isTamil ? FontWeight.w700 : FontWeight.w800,
+                            fontWeight: isTamil
+                                ? FontWeight.w700
+                                : FontWeight.w800,
                           ),
                         ),
                       ),
@@ -174,7 +237,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           style: TextStyle(
                             color: const Color(0xFF6B0000),
                             fontSize: 20,
-                            fontWeight: isTamil ? FontWeight.w700 : FontWeight.w800,
+                            fontWeight: isTamil
+                                ? FontWeight.w700
+                                : FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -182,8 +247,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           mobile.isNotEmpty
                               ? '+91 $mobile'
                               : (isTamil
-                                  ? 'கைபேசி எண் சேர்க்கப்படவில்லை'
-                                  : 'Mobile number not set'),
+                                    ? 'கைபேசி எண் சேர்க்கப்படவில்லை'
+                                    : 'Mobile number not set'),
                           style: const TextStyle(
                             color: Color(0xFF6E6E6E),
                             fontSize: 14,
@@ -194,17 +259,19 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         // EDIT Pill Button
                         InkWell(
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => EditProfileScreen(
-                                  selectedLanguage: _currentLanguage,
-                                  initialMobile: mobile,
-                                  initialAddress: address,
-                                ),
-                              ),
-                            ).then((_) {
-                              setState(() {});
-                            });
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (context) => EditProfileScreen(
+                                      selectedLanguage: _currentLanguage,
+                                      initialMobile: mobile,
+                                      initialAddress: address,
+                                    ),
+                                  ),
+                                )
+                                .then((_) {
+                                  setState(() {});
+                                });
                           },
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
@@ -269,11 +336,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           child: _buildInfoTile(
                             icon: Icons.fingerprint_rounded,
                             label: isTamil ? 'பயனர் எண்' : 'USER ID',
-                            value: userCode.isNotEmpty ? userCode : 'TVK-C-0001',
+                            value: userCode.isNotEmpty
+                                ? userCode
+                                : 'TVK-C-0001',
                             isGold: true,
                           ),
                         ),
-                        Container(width: 1, height: 40, color: const Color(0xFFF0E6E6)),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: const Color(0xFFF0E6E6),
+                        ),
                         Expanded(
                           child: _buildInfoTile(
                             icon: Icons.calendar_today_rounded,
@@ -287,10 +360,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     // Row 2: Address
                     _buildInfoTile(
                       icon: Icons.location_on_outlined,
-                      label: isTamil ? 'குடியிருப்பு முகவரி' : 'RESIDENTIAL ADDRESS',
+                      label: isTamil
+                          ? 'குடியிருப்பு முகவரி'
+                          : 'RESIDENTIAL ADDRESS',
                       value: address.isNotEmpty
                           ? address
-                          : (isTamil ? 'முகவரி குறிப்பிடப்படவில்லை' : 'Address not specified'),
+                          : (isTamil
+                                ? 'முகவரி குறிப்பிடப்படவில்லை'
+                                : 'Address not specified'),
                       isFullWidth: true,
                     ),
                   ],
@@ -327,9 +404,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: const Color(0xFFEBE5E5),
-                      ),
+                      border: Border.all(color: const Color(0xFFEBE5E5)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -413,9 +488,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: const Color(0xFFEBE5E5),
-                      ),
+                      border: Border.all(color: const Color(0xFFEBE5E5)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -556,6 +629,59 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
                   const SizedBox(height: 24),
 
+                  // 🗑️ DELETE ACCOUNT BUTTON CONTAINER
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF1F0),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: const Color(0xFFFFD6D6),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(22),
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        onTap: _isDeletingAccount
+                            ? null
+                            : () =>
+                                  _showDeleteAccountConfirmationDialog(isTamil),
+                        leading: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.delete_forever_rounded,
+                            color: Color(0xFFD32F2F),
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(
+                          isTamil ? 'கணக்கை நீக்கு' : 'Delete Account',
+                          style: const TextStyle(
+                            color: Color(0xFFD32F2F),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Color(0xFFD32F2F),
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
                   // 🚪 LOGOUT BUTTON CONTAINER
                   Container(
                     width: double.infinity,
@@ -568,7 +694,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD32F2F).withValues(alpha: 0.05),
+                          color: const Color(0xFFD32F2F)
+                              .withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -639,8 +766,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Row(
-        crossAxisAlignment:
-            isFullWidth ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment: isFullWidth
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -649,11 +777,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFF0E6E6)),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF750000),
-              size: 18,
-            ),
+            child: Icon(icon, color: const Color(0xFF750000), size: 18),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -675,7 +799,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
-                    color: isGold ? const Color(0xFF750000) : const Color(0xFF2C0000),
+                    color: isGold
+                        ? const Color(0xFF750000)
+                        : const Color(0xFF2C0000),
                     fontFamily: isGold ? 'monospace' : null,
                   ),
                 ),

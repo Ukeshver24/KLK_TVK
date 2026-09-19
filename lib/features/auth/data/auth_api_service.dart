@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/network_error_helper.dart';
 
@@ -7,11 +8,7 @@ class AuthResult {
   final String message;
   final Map<String, dynamic>? data;
 
-  AuthResult({
-    required this.isSuccess,
-    required this.message,
-    this.data,
-  });
+  AuthResult({required this.isSuccess, required this.message, this.data});
 }
 
 class AuthApiService {
@@ -40,7 +37,8 @@ class AuthApiService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return AuthResult(
           isSuccess: true,
-          message: response.data['message'] ?? 'Account registered successfully',
+          message:
+              response.data['message'] ?? 'Account registered successfully',
           data: response.data['data'],
         );
       } else {
@@ -65,10 +63,7 @@ class AuthApiService {
     try {
       final response = await _dio.post(
         '/auth/login',
-        data: {
-          'mobile': mobile.trim(),
-          'mpin': mpin.trim(),
-        },
+        data: {'mobile': mobile.trim(), 'mpin': mpin.trim()},
       );
 
       if (response.statusCode == 200) {
@@ -106,10 +101,7 @@ class AuthApiService {
       if (dob != null) body['dob'] = dob.trim();
       if (address != null) body['address'] = address.trim();
 
-      final response = await _dio.put(
-        '/auth/profile',
-        data: body,
-      );
+      final response = await _dio.put('/auth/profile', data: body);
 
       if (response.statusCode == 200) {
         return AuthResult(
@@ -150,7 +142,8 @@ class AuthApiService {
       if (response.statusCode == 200) {
         return AuthResult(
           isSuccess: true,
-          message: response.data['message'] ?? 'MPIN has been reset successfully',
+          message:
+              response.data['message'] ?? 'MPIN has been reset successfully',
           data: response.data['data'],
         );
       } else {
@@ -170,12 +163,34 @@ class AuthApiService {
   /// Register or Sync Firebase FCM Push Token to Backend Database
   Future<void> syncFcmToken(String fcmToken) async {
     try {
-      await _dio.post(
-        '/auth/fcm-token',
-        data: {'fcmToken': fcmToken.trim()},
-      );
+      await _dio.post('/auth/fcm-token', data: {'fcmToken': fcmToken.trim()});
     } catch (_) {
       // Background sync, silently handle if network is offline
+    }
+  }
+
+  /// Permanently delete the authenticated Citizen account
+  Future<AuthResult> deleteAccount() async {
+    try {
+      final response = await _dio.delete('/auth/account');
+
+      if (response.statusCode == 200) {
+        return AuthResult(
+          isSuccess: true,
+          message: response.data['message'] ?? 'Account deleted successfully',
+          data: response.data['data'],
+        );
+      } else {
+        return AuthResult(
+          isSuccess: false,
+          message: response.data['message'] ?? 'Failed to delete account',
+        );
+      }
+    } catch (e) {
+      return AuthResult(
+        isSuccess: false,
+        message: NetworkErrorHelper.format(e),
+      );
     }
   }
 }
