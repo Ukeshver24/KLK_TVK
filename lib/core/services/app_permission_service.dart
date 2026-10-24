@@ -41,18 +41,14 @@ class AppPermissionService {
           debugPrint('Camera permission error: $e');
         }
 
-        // 3. Storage / Files / Photos Access Permissions
+        // 3. Storage / Files Permissions
         try {
           if (Platform.isAndroid) {
-            // Android 13+ uses photos & videos permissions, while Android <= 12 uses storage
+            // Android uses the system Photo Picker for image selection (no permission required).
+            // Request legacy storage permission only for Android 12 and below (API <= 32).
             final storageStatus = await Permission.storage.status;
             if (!storageStatus.isGranted) {
               await Permission.storage.request();
-            }
-
-            final photosStatus = await Permission.photos.status;
-            if (!photosStatus.isGranted) {
-              await Permission.photos.request();
             }
           } else if (Platform.isIOS) {
             final photosStatus = await Permission.photos.status;
@@ -69,20 +65,17 @@ class AppPermissionService {
     }
   }
 
-  /// Explicitly ensure storage permission is granted before file download
+  /// Explicitly ensure storage permission is granted before file download (for Android <= 12)
   Future<bool> ensureStoragePermission() async {
     try {
       if (!Platform.isAndroid) return true;
 
+      // On Android 13+ (API 33+), scoped storage / app storage does not require legacy storage permission
       final status = await Permission.storage.status;
       if (status.isGranted) return true;
 
       final res = await Permission.storage.request();
-      if (res.isGranted) return true;
-
-      // On Android 13+, check photos permission
-      final photoRes = await Permission.photos.request();
-      return photoRes.isGranted;
+      return res.isGranted;
     } catch (_) {
       return true;
     }

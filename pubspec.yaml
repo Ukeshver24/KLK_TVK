@@ -2,7 +2,7 @@ name: tvk_application
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 2.0.0+3
 
 environment:
   sdk: ^3.13.0
@@ -44,10 +44,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/tvk_app_icon.png"
+  remove_alpha_ios: true
+  image_path: "assets/icon/klk_tvk_logo.png"
   min_sdk_android: 21
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/tvk_adaptive_foreground.png"
+  adaptive_icon_foreground: "assets/icon/klk_tvk_logo.png"
 
 flutter:
   uses-material-design: true
