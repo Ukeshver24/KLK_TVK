@@ -22,6 +22,15 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
     final privacySections = [
       {
+        'icon': Icons.info_outline_rounded,
+        'titleEn': 'GOVERNMENT & OFFICIAL DISCLAIMER',
+        'titleTa': 'அதிகாரப்பூர்வ பொறுப்புத் துறப்பு',
+        'contentEn':
+            'Disclaimer: This application is not an official government application and does not represent any government department or government agency. It is an independent civic communication portal managed by the constituency office of MLA C. Arul Vignesh / Tamizhaga Vettri Kazhagam (TVK) to receive and facilitate citizen grievances in the Kallakurichi constituency.',
+        'contentTa':
+            'பொறுப்புத் துறப்பு: இந்தச் செயலி எந்தவொரு அரசுத் துறை அல்லது அரசு நிறுவனத்தின் அதிகாரப்பூர்வ செயலி அல்ல. இது கள்ளக்குறிச்சி தொகுதி சட்டமன்ற உறுப்பினர் அலுவலகம் / தமிழக வெற்றிக் கழகம் (TVK) சார்பாக தொகுதி மக்களின் குறைகளைக் கேட்டறிந்து தீர்வு காண்பதற்காக உருவாக்கப்பட்ட சுயாதீன மக்கள் குறைதீர்ப்பு செயலியாகும்.',
+      },
+      {
         'icon': Icons.security_rounded,
         'titleEn': 'DATA COLLECTION',
         'titleTa': 'தகவல்கள் சேகரிப்பு',
